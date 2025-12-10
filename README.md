@@ -1,61 +1,61 @@
-# HyperGuest SDK
+# GuestLine SDK
 
-[![.github/workflows/main.yml](https://github.com/IngeniumSE/HyperGuestSDK/actions/workflows/main.yml/badge.svg)](https://github.com/IngeniumSE/HyperGuestSDK/actions/workflows/main.yml) [![.github/workflows/release.yml](https://github.com/IngeniumSE/HyperGuestSDK/actions/workflows/release.yml/badge.svg)](https://github.com/IngeniumSE/HyperGuestSDK/actions/workflows/release.yml)
+[![.github/workflows/main.yml](https://github.com/IngeniumSE/GuestLineSDK/actions/workflows/main.yml/badge.svg)](https://github.com/IngeniumSE/GuestLineSDK/actions/workflows/main.yml) [![.github/workflows/release.yml](https://github.com/IngeniumSE/GuestLineSDK/actions/workflows/release.yml/badge.svg)](https://github.com/IngeniumSE/GuestLineSDK/actions/workflows/release.yml)
 
-A .NET SDK built for the HyperGuest platform
+A .NET SDK built for the GuestLine (STAAH) platform
 
 ## Installation
 
-The HyperGuest SDK is available on NuGet. Please install the `HyperGuestSDK` package.
+The GuestLine SDK is available on NuGet. Please install the `GuestLineSDK` package.
 
 ### .NET CLI
 
 ```
-dotnet add package HyperGuestSDK
+dotnet add package GuestLineSDK
 ```
 
 ### Nuget Package Manager
 
 ```
-Install-Package HyperGuestSDK
+Install-Package GuestLineSDK
 ```
 
 ### Nuget CLI
 
 ```
-nuget install HyperGuestSDK
+nuget install GuestLineSDK
 ```
 
 ## Getting started
 
 ### Integration with Microsoft.Extensions.DependencyInjection
 
-The HyperGuest SDK can be integrated with the `Microsoft.Extensions.DependencyInjection` library. This allows for easy dependency injection of the HyperGuest SDK services.
+The GuestLine SDK can be integrated with the `Microsoft.Extensions.DependencyInjection` library. This allows for easy dependency injection of the GuestLine SDK services.
 
 ```csharp
-services.AddHyperGuest();
+services.AddGuestLine();
 ```
 
 ### Manual setup
 
-If you do not wish to use the `Microsoft.Extensions.DependencyInjection` library, you can manually create an instance of the `HyperGuestClient` class.
+If you do not wish to use the `Microsoft.Extensions.DependencyInjection` library, you can manually create an instance of the `GuestLineClient` class.
 
 ```csharp
 var http = new HttpClient();
-var client = new HyperGuestClient(http, new HyperGuestSettings());
+var client = new GuestLineClient(http, new GuestLineSettings());
 ```
 
 Or, alternatively, you can use the API client factory:
 
 ```csharp
-var httpFactory = new HyperGuestHttpClientFactory();
-var clientFactory = new HyperGuestApiClientFactory(httpFactory);
-var client = clientFactory.CreateClient(new HyperGuestSettings());
+var httpFactory = new GuestLineHttpClientFactory();
+var clientFactory = new GuestLineApiClientFactory(httpFactory);
+var client = clientFactory.CreateClient(new GuestLineSettings());
 ```
 
 **NOTE** - On .NET Framework, it is recommended to use a single instance of `HttpClient` for the lifetime of your application. This is because the `HttpClient` class is designed to be reused and not disposed of after each request.
 
-A `IHyperGuestHttpClientFactory` can be implemented to manage the lifecycle of the `HttpClient` instance.
+A `IGuestLineHttpClientFactory` can be implemented to manage the lifecycle of the `HttpClient` instance.
 
 ## Terminology
 
@@ -71,7 +71,7 @@ Other terms such as Driver, Lap, etc are self-explanatory.
 
 The SDK supports a subset of the available operations in the Open F1 API. The following operations are supported:
 
-The SDK is designed to be extensible, so any calls not currently supported by the SDK, can be made using the `HyperGuestClient` class directly.
+The SDK is designed to be extensible, so any calls not currently supported by the SDK, can be made using the `GuestLineClient` class directly.
 
 | Endpoint | Client Property | Operation | Description |
 |-|-|-|
@@ -79,7 +79,7 @@ The SDK is designed to be extensible, so any calls not currently supported by th
 
 ## Example
 
-The following example demonstrates how to use the HyperGuest SDK to get the latest meeting and sessions.
+The following example demonstrates how to use the GuestLine SDK to get the latest meeting and sessions.
 
 ```csharp
 // Gets all properties
@@ -92,14 +92,14 @@ To aid in debugging results from the Open F1 API, you can enable the following s
 
 ```json
 {
-  "HyperGuest": {
+  "GuestLine": {
     "CaptureRequestContent": true,
     "CaptureResponseContent": true
   }
 }
 ```
 
-These settings, when enabled will capture the request and response content for each API call, and the content of these will be available to the `HyperGuestResponse` as `RequestContent` and `ResponseContent` properties. The SDK will automatically map these results, but for unexpected results, it is useful to understand what has been sent/received.
+These settings, when enabled will capture the request and response content for each API call, and the content of these will be available to the `GuestLineResponse` as `RequestContent` and `ResponseContent` properties. The SDK will automatically map these results, but for unexpected results, it is useful to understand what has been sent/received.
 
 ## Open Source
 

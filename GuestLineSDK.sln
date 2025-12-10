@@ -1,0 +1,96 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F3DB67FB-0AED-46C2-9F74-A9C197443E68}"
+	ProjectSection(SolutionItems) = preProject
+		build\.editorconfig = build\.editorconfig
+		build\.gitignore = build\.gitignore
+		build\coverlet.runsettings = build\coverlet.runsettings
+		build\Directory.Build.props = build\Directory.Build.props
+		build\Directory.Build.targets = build\Directory.Build.targets
+		build\Directory.Packages.props = build\Directory.Packages.props
+		build\LICENSE = build\LICENSE
+		build\NuGet.config = build\NuGet.config
+		build\README.md = build\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{3D0CADC5-4B71-455C-9CD0-BDB0B3A74B3F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build.Abstractions", "build\apps\Build.Abstractions\Build.Abstractions.csproj", "{AADAD00E-7DE8-4EA9-A385-905E896149BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build", "build\apps\Build\Build.csproj", "{F45BA32C-F402-4300-BA56-E19F30EA6FB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "repo", "repo", "{37FB9CCF-1627-4EE3-ADC7-61471DF96EAC}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		build.cmd = build.cmd
+		build.sh = build.sh
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
+		NuGet.config = NuGet.config
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{B55E88E9-F535-4649-A4E4-CE8495D4DDC6}"
+	ProjectSection(SolutionItems) = preProject
+		build\.config\dotnet-tools.json = build\.config\dotnet-tools.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{71A838D8-527D-41D1-99B0-611404787F46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{9E95ECB2-C721-4367-B515-25C735D6573B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\main.yml = .github\workflows\main.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{44D9A031-6FAD-45B7-A5BE-680E031CD72E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuestLineSDK", "libs\GuestLineSDK\GuestLineSDK.csproj", "{6F68ECE8-21CA-4547-3BDD-11A7803D217D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuestLineSDK.ConsoleSample", "apps\GuestLineSDK.ConsoleSample\GuestLineSDK.ConsoleSample.csproj", "{17B56119-C0FB-77A6-18F9-51EC57E71C5C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AADAD00E-7DE8-4EA9-A385-905E896149BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AADAD00E-7DE8-4EA9-A385-905E896149BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AADAD00E-7DE8-4EA9-A385-905E896149BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AADAD00E-7DE8-4EA9-A385-905E896149BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F45BA32C-F402-4300-BA56-E19F30EA6FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F45BA32C-F402-4300-BA56-E19F30EA6FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F45BA32C-F402-4300-BA56-E19F30EA6FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F45BA32C-F402-4300-BA56-E19F30EA6FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F68ECE8-21CA-4547-3BDD-11A7803D217D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F68ECE8-21CA-4547-3BDD-11A7803D217D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F68ECE8-21CA-4547-3BDD-11A7803D217D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F68ECE8-21CA-4547-3BDD-11A7803D217D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17B56119-C0FB-77A6-18F9-51EC57E71C5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17B56119-C0FB-77A6-18F9-51EC57E71C5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17B56119-C0FB-77A6-18F9-51EC57E71C5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17B56119-C0FB-77A6-18F9-51EC57E71C5C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AADAD00E-7DE8-4EA9-A385-905E896149BA} = {F3DB67FB-0AED-46C2-9F74-A9C197443E68}
+		{F45BA32C-F402-4300-BA56-E19F30EA6FB7} = {F3DB67FB-0AED-46C2-9F74-A9C197443E68}
+		{B55E88E9-F535-4649-A4E4-CE8495D4DDC6} = {F3DB67FB-0AED-46C2-9F74-A9C197443E68}
+		{9E95ECB2-C721-4367-B515-25C735D6573B} = {71A838D8-527D-41D1-99B0-611404787F46}
+		{6F68ECE8-21CA-4547-3BDD-11A7803D217D} = {3D0CADC5-4B71-455C-9CD0-BDB0B3A74B3F}
+		{17B56119-C0FB-77A6-18F9-51EC57E71C5C} = {44D9A031-6FAD-45B7-A5BE-680E031CD72E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26041282-B1C0-4262-AE2F-DA9CF2480C37}
+	EndGlobalSection
+EndGlobal
