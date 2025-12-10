@@ -104,7 +104,7 @@ string GetARIUpdate()
         ""extrachild"": ""600.00"",
         ""Rate"": ""4900"",
         ""obp"": {
-          ""person3"": ""5700"",
+          ""person3"": ""5758"",
           ""person1"": ""4900"",
           ""person2"": ""5400""
         },
