@@ -36,7 +36,7 @@ public class ObpDictionaryJsonConverter : JsonConverter<Dictionary<int, decimal?
 							string? valueString = reader.GetString();
 							if (decimal.TryParse(valueString, out decimal value))
 							{
-								dictionary[key] = Math.Floor(value) / 100;
+								dictionary[key] = value;
 							}
 							else
 							{
@@ -47,7 +47,7 @@ public class ObpDictionaryJsonConverter : JsonConverter<Dictionary<int, decimal?
 						{
 							if (reader.TryGetDecimal(out var value))
 							{
-								dictionary[key] = Math.Floor(value) / 100;
+								dictionary[key] = value;
 							}
 							else
 							{

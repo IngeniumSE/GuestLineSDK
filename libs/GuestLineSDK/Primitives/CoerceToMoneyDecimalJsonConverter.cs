@@ -17,14 +17,14 @@ public class CoerceToMoneyDecimalJsonConverter : JsonConverter<decimal?>
 			string? valueString = reader.GetString();
 			if (decimal.TryParse(valueString, out decimal value))
 			{
-				return Math.Floor(value) / 100;
+				return value;
 			}
 		}
 		else if (reader.TokenType == JsonTokenType.Number)
 		{
 			if (reader.TryGetDecimal(out var value))
 			{
-				return Math.Floor(value) / 100;
+				return value;
 			}
 		}
 		else if (reader.TokenType == JsonTokenType.Null)
