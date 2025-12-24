@@ -13,10 +13,16 @@ var settings = GetSettings();
 var http = CreateHttpClient();
 var api = new GuestLineApiClient(http, settings);
 
-string json = GetARIUpdate();
+var ari = await api.Service.GetAriAsync(new GuestLineAriRequest(
+	PropertyId: "12992",
+	RoomId: "1299210STANDARD",
+	RateId: "1299224125",
+	Action: AriAction.FullYear));
 
-var updateRef = AriUpdateRef.FromJsonString(json);
-var update = AriUpdate.FromJsonString(json);
+//string json = GetARIUpdate();
+
+//var updateRef = AriUpdateRef.FromJsonString(json);
+//var update = AriUpdate.FromJsonString(json);
 Console.ReadKey();
 
 GuestLineSettings GetSettings()

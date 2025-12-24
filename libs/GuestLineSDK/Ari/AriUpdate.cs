@@ -86,7 +86,7 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// Amount after tax.
 	/// </summary>
 	[JsonPropertyName("amountAfterTax")]
-	public AriUpdateDataPricing? AmountafterTax { get; set; }
+	public AriUpdateDataPricing? AmountAfterTax { get; set; }
 
 	/// <summary>
 	/// Amount before tax.
@@ -109,7 +109,7 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
-	[JsonPropertyName("from_date")]
+	[JsonPropertyName("from_date"), JsonConverter(typeof(DateOnlyJsonConverter))]
 	public DateTime? FromDate { get; set; }
 
 	/// <summary>
@@ -151,7 +151,7 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
-	[JsonPropertyName("to_date")]
+	[JsonPropertyName("to_date"), JsonConverter(typeof(DateOnlyJsonConverter))]
 	public DateTime? ToDate { get; set; }
 }
 

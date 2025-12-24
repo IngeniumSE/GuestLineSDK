@@ -20,15 +20,32 @@ public abstract class ApiClient
 	readonly GuestLineSettings _settings;
 	readonly JsonSerializerOptions _serializerOptions = JsonUtility.CreateSerializerOptions();
 	readonly JsonSerializerOptions _deserializerOptions = JsonUtility.CreateDeserializerOptions();
-	readonly Uri _baseUrl;
+	readonly Uri _serviceBaseUrl;
+	readonly Uri _bookBaseUrl;
 
 	protected ApiClient(HttpClient http, GuestLineSettings settings)
 	{
 		_http = Ensure.IsNotNull(http, nameof(http));
 		_settings = Ensure.IsNotNull(settings, nameof(settings));
 
-		_baseUrl = new Uri(_settings.BaseUrl);
+		_serviceBaseUrl = new Uri(GuestLineUriResolver.ResolveServiceBaseUrl(settings));
+		_bookBaseUrl = new Uri(GuestLineUriResolver.ResolveBookBaseUrl(settings));
 	}
+
+	/// <summary>
+	/// Gets the book base URL.
+	/// </summary>
+	public Uri BookBaseUrl => _bookBaseUrl;
+
+	/// <summary>
+	/// Gets the service base URL.
+	/// </summary>
+	public Uri ServiceBaseUrl => _serviceBaseUrl;
+
+	/// <summary>
+	/// Gets the settings.
+	/// </summary>
+	public GuestLineSettings Settings => _settings;
 
 	#region Send and Fetch
 	protected internal async Task<GuestLineResponse> SendAsync(
@@ -238,7 +255,8 @@ public abstract class ApiClient
 
 		var baseUri = request.Service switch
 		{
-			GuestLineService.Reservation => _baseUrl,
+			GuestLineService.Book => _bookBaseUrl,
+			GuestLineService.ARI => _serviceBaseUrl,
 
 			_ => throw new NotSupportedException(
 				string.Format(Resources.ApiClient_UnsupportedService, request.Service)
