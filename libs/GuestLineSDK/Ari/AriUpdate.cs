@@ -109,6 +109,12 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
+	[JsonPropertyName("date"), JsonConverter(typeof(DateOnlyJsonConverter))]
+	public DateTime? Date { get; set; }
+
+	/// <summary>
+	/// Date in YYYY-MM-DD format.
+	/// </summary>
 	[JsonPropertyName("from_date"), JsonConverter(typeof(DateOnlyJsonConverter))]
 	public DateTime? FromDate { get; set; }
 
