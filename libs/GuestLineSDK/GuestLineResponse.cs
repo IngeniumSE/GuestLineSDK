@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 
+using GuestLineSDK.Primitives;
+
 namespace GuestLineSDK;
 
 /// <summary>
@@ -23,9 +25,7 @@ public class GuestLineResponse(
 	Uri uri,
 	bool isSuccess,
 	HttpStatusCode statusCode,
-	Meta? meta = default,
-	RateLimiting? rateLimiting = default,
-	Error? error = default)
+	ErrorResponse? error = default)
 {
 	/// <summary>
 	/// Gets whether the status code represents a success HTTP status code.
@@ -35,22 +35,12 @@ public class GuestLineResponse(
 	/// <summary>
 	/// Gets the error.
 	/// </summary>
-	public Error? Error => error;
-
-	/// <summary>
-	/// Gets th metadata.
-	/// </summary>
-	public Meta? Meta => meta;
+	public ErrorResponse? Error => error;
 
 	/// <summary>
 	/// Gets the HTTP status code of the response.
 	/// </summary>
 	public HttpStatusCode StatusCode => statusCode;
-
-	/// <summary>
-	/// Gets the rate limiting metdata for the request.
-	/// </summary>
-	public RateLimiting? RateLimiting => rateLimiting;
 
 	/// <summary>
 	/// Gets or sets the request HTTP method.
@@ -73,6 +63,11 @@ public class GuestLineResponse(
 	public string? ResponseContent { get; set; }
 
 	/// <summary>
+	/// Gets the unique identifier associated with the response for tracking purposes.
+	/// </summary>
+	public virtual string? TrackingId => Error?.TrackingId;
+
+	/// <summary>
 	/// Provides a string representation for debugging.
 	/// </summary>
 	/// <returns></returns>
@@ -82,8 +77,11 @@ public class GuestLineResponse(
 		builder.Append($"{StatusCode}: {RequestMethod} {RequestUri.PathAndQuery}");
 		if (Error is not null)
 		{
-			builder.Append($" - {Error.Message}");
+			builder.Append($" - {Error.Error}");
 		}
+
+		string trackingId = TrackingId ?? "(untrackable)";
+		builder.Append($" [Tracking ID: {trackingId}]");
 
 		return builder.ToString();
 	}
@@ -107,10 +105,8 @@ public class GuestLineResponse<TData>(
 	bool isSuccess,
 	HttpStatusCode statusCode,
 	TData? data = default,
-	Meta? meta = default,
-	RateLimiting? rateLimiting = default,
-	Error? error = default) : GuestLineResponse(method, uri, isSuccess, statusCode, meta, rateLimiting, error)
-	where TData : class
+	ErrorResponse? error = default) : GuestLineResponse(method, uri, isSuccess, statusCode, error)
+	where TData : Result<TData>
 {
 	/// <summary>
 	/// Gets the response data.
@@ -121,6 +117,11 @@ public class GuestLineResponse<TData>(
 	/// Gets whether the response has data.
 	/// </summary>
 	public bool HasData => data is not null;
+
+	/// <summary>
+	/// Gets the tracking identifier associated with the current operation or request.
+	/// </summary>
+	public override string? TrackingId => Data?.TrackingId ?? base.TrackingId;
 
 	public override string ToDebuggerString()
 	{
@@ -133,75 +134,12 @@ public class GuestLineResponse<TData>(
 		builder.Append($": {RequestMethod} {RequestUri.PathAndQuery}");
 		if (Error is not null)
 		{
-			builder.Append($" - {Error.Message}");
+			builder.Append($" - {Error.Error}");
 		}
+
+		string trackingId = TrackingId ?? "(untrackable)";
+		builder.Append($" [Tracking ID: {trackingId}]");
 
 		return builder.ToString();
 	}
-}
-
-/// <summary>
-/// Represents a Trybe error response.
-/// </summary>
-/// <param name="message">The error message.</param>
-/// <param name="errors">The set of additional error messages, these may be field specific.</param>
-/// <param name="exception">The exception that was caught.</param>
-public class Error(string message, Dictionary<string, string[]>? errors = null, Exception? exception = null)
-{
-	/// <summary>
-	/// Gets the set of additional error messages, these may be field specific.
-	/// </summary>
-	public Dictionary<string, string[]>? Errors => errors;
-
-	/// <summary>
-	/// Gets the exception that was caught.
-	/// </summary>
-	public Exception? Exception => exception;
-
-	/// <summary>
-	/// Gets the error message.
-	/// </summary>
-	public string Message => message;
-}
-
-/// <summary>
-/// Represents metadata for a Trybe request.
-/// </summary>
-public class Meta
-{
-	/// <summary>
-	/// Gets the current page.
-	/// </summary>
-	public int Page { get; set; }
-
-	/// <summary>
-	/// Gets the page size.
-	/// </summary>
-	public int PageSize { get; set; }
-
-	/// <summary>
-	/// Gets or sets the total number of items.
-	/// </summary>
-	public int TotalItems { get; set; }
-
-	/// <summary>
-	/// Gets or sets the total number of pages.
-	/// </summary>
-	public int TotalPages { get; set; }
-}
-
-/// <summary>
-/// Represents rate-limiting information for a Trybe request.
-/// </summary>
-public class RateLimiting
-{
-	/// <summary>
-	/// Gets the remaining number of calls available.
-	/// </summary>
-	public int Remaining { get; set; }
-
-	/// <summary>
-	/// Gets the limit of calls available.
-	/// </summary>
-	public int Limit { get; set; }
 }

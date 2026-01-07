@@ -1,13 +1,13 @@
 ﻿// This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using GuestLineSDK.Primitives;
 
 namespace GuestLineSDK;
 
@@ -76,12 +76,19 @@ public abstract class ApiClient
 		}
 		catch (Exception ex)
 		{
+			ex = ex.Demystify();
+
 			var response = new GuestLineResponse(
 				httpReq.Method,
 				httpReq.RequestUri,
 				false,
 				(HttpStatusCode)0,
-				error: new Error(ex.Message, exception: ex));
+				error: new ErrorResponse
+				{
+					Error = ex.Message,
+					Exception = ex,
+					ErrorSource = ErrorSource.SDK
+				});
 
 			return response;
 		}
@@ -121,12 +128,19 @@ public abstract class ApiClient
 		}
 		catch (Exception ex)
 		{
+			ex = ex.Demystify();
+
 			var response = new GuestLineResponse(
 				httpReq.Method,
 				httpReq.RequestUri,
 				false,
 				(HttpStatusCode)0,
-				error: new Error(ex.Message, exception: ex));
+				error: new ErrorResponse
+				{
+					Error = ex.Message,
+					Exception = ex,
+					ErrorSource = ErrorSource.SDK
+				});
 
 			return response;
 		}
@@ -135,7 +149,7 @@ public abstract class ApiClient
 	protected internal async Task<GuestLineResponse<TResponse>> FetchAsync<TResponse>(
 		GuestLineRequest request,
 		CancellationToken cancellationToken = default)
-		where TResponse : class
+		where TResponse : Result<TResponse>
 	{
 		Ensure.IsNotNull(request, nameof(request));
 		var httpReq = CreateHttpRequest(request);
@@ -161,12 +175,19 @@ public abstract class ApiClient
 		}
 		catch (Exception ex)
 		{
+			ex = ex.Demystify();
+
 			var response = new GuestLineResponse<TResponse>(
 				httpReq.Method,
 				httpReq.RequestUri,
 				false,
 				(HttpStatusCode)0,
-				error: new Error(ex.Message, exception: ex));
+				error: new ErrorResponse
+				{
+					Error = ex.Message,
+					Exception = ex,
+					ErrorSource = ErrorSource.SDK
+				});
 
 			return response;
 		}
@@ -188,7 +209,7 @@ public abstract class ApiClient
 		GuestLineRequest<TRequest> request,
 		CancellationToken cancellationToken = default)
 		where TRequest : notnull
-		where TResponse : class
+		where TResponse : Result<TResponse>
 	{
 		Ensure.IsNotNull(request, nameof(request));
 		var (httpReq, capturedRequestContent) = CreateHttpRequest(request);
@@ -219,12 +240,19 @@ public abstract class ApiClient
 		}
 		catch (Exception ex)
 		{
+			ex = ex.Demystify();
+
 			var response = new GuestLineResponse<TResponse>(
 				httpReq.Method,
 				httpReq.RequestUri,
 				false,
 				(HttpStatusCode)0,
-				error: new Error(ex.Message, exception: ex));
+				error: new ErrorResponse
+				{
+					Error = ex.Message,
+					Exception = ex,
+					ErrorSource = ErrorSource.SDK
+				});
 
 			return response;
 		}
@@ -255,7 +283,7 @@ public abstract class ApiClient
 
 		var baseUri = request.Service switch
 		{
-			GuestLineService.Book => _bookBaseUrl,
+			GuestLineService.Reservation => _bookBaseUrl,
 			GuestLineService.ARI => _serviceBaseUrl,
 
 			_ => throw new NotSupportedException(
@@ -300,38 +328,43 @@ public abstract class ApiClient
 		HttpResponseMessage response,
 		CancellationToken cancellationToken = default)
 	{
-		var rateLimiting = GetRateLimiting(response);
-
 		if (response.IsSuccessStatusCode)
 		{
 			return (new GuestLineResponse(
 				method,
 				uri,
 				response.IsSuccessStatusCode,
-				response.StatusCode,
-				rateLimiting: rateLimiting), null);
+				response.StatusCode), null);
 		}
 		else
 		{
-			Error error;
+			ErrorResponse? error;
 			string? stringContent = await response.Content.ReadAsStringAsync()
 					.ConfigureAwait(false);
-			if (stringContent is { Length: >0 })
+			if (stringContent is { Length: > 0 })
 			{
-				var result = JsonSerializer.Deserialize<ErrorContainer>(stringContent, _deserializerOptions);
+				var result = JsonSerializer.Deserialize<ErrorResponse>(stringContent, _deserializerOptions);
 
 				if (result?.Error is not { Length: > 0 })
 				{
-					error = new(Resources.ApiClient_UnknownResponse, result?.ToErrorDictionary());
+					error = new ErrorResponse
+					{
+						Error = Resources.ApiClient_UnknownResponse,
+						Status = result?.Status,
+						TrackingId = result?.TrackingId
+					};
 				}
 				else
 				{
-					error = new(BuildErrorMessage(result!), result?.ToErrorDictionary());
+					error = result;
 				}
 			}
 			else
 			{
-				error = new Error(Resources.ApiClient_NoErrorMessage);
+				error = new ErrorResponse
+				{
+					Error = Resources.ApiClient_NoErrorMessage
+				};
 			}
 
 			return (new GuestLineResponse(
@@ -339,7 +372,6 @@ public abstract class ApiClient
 				uri,
 				response.IsSuccessStatusCode,
 				response.StatusCode,
-				rateLimiting: rateLimiting,
 				error: error
 			), stringContent);
 		}
@@ -350,10 +382,8 @@ public abstract class ApiClient
 		Uri uri,
 		HttpResponseMessage response,
 		CancellationToken cancellationToken = default)
-		where TResponse : class
+		where TResponse : Result<TResponse>
 	{
-		var rateLimiting = GetRateLimiting(response);
-
 		Stream? content = null;
 		string? stringContent = null;
 		if (response.Content is not null)
@@ -373,25 +403,37 @@ public abstract class ApiClient
 		if (response.IsSuccessStatusCode)
 		{
 			TResponse? data = default;
-			Meta? meta = default;
-			if (content is not null || stringContent is { Length: >0 })
+			if (content is not null || stringContent is { Length: > 0 })
 			{
 				try
 				{
 					data = stringContent is { Length: > 0 }
 						? JsonSerializer.Deserialize<TResponse>(stringContent, _deserializerOptions)
 						: await JsonSerializer.DeserializeAsync<TResponse>(content!, _deserializerOptions).ConfigureAwait(false);
+
+					return (new GuestLineResponse<TResponse>(
+						method,
+						uri,
+						response.IsSuccessStatusCode,
+						response.StatusCode,
+						data: data), stringContent);
 				}
 				catch (Exception ex)
 				{
+					ex = ex.Demystify();
+
 					return new(
 						new GuestLineResponse<TResponse>(
 							method,
 							uri,
 							response.IsSuccessStatusCode,
 							response.StatusCode,
-							rateLimiting: rateLimiting,
-							error: new Error(ex.Message, exception: ex)
+							error: new ErrorResponse
+							{
+								Error = ex.Message,
+								Exception = ex,
+								ErrorSource = ErrorSource.SDK
+							}
 						), stringContent);
 				}
 			}
@@ -399,123 +441,51 @@ public abstract class ApiClient
 			return (new GuestLineResponse<TResponse>(
 				method,
 				uri,
-				response.IsSuccessStatusCode,
+				false,
 				response.StatusCode,
-				data: data,
-				meta: meta,
-				rateLimiting: rateLimiting
+				error: new ErrorResponse
+				{
+					Error = Resources.ApiClient_UnknownResponse
+				}
 			), stringContent);
 		}
 		else
 		{
-			Error error;
-			if (stringContent is { Length: >0 })
+			ErrorResponse? error;
+			if (stringContent is { Length: > 0 })
 			{
-				try
-				{
-					var result = JsonSerializer.Deserialize<ErrorContainer>(stringContent, _deserializerOptions);
+				var result = JsonSerializer.Deserialize<ErrorResponse>(stringContent, _deserializerOptions);
 
-					if (result?.Error is not { Length: > 0 })
-					{
-						error = new(Resources.ApiClient_UnknownResponse, result?.ToErrorDictionary());
-					}
-					else
-					{
-						error = new(BuildErrorMessage(result!), result?.ToErrorDictionary());
-					}
-				}
-				catch (Exception ex)
+				if (result?.Error is not { Length: > 0 })
 				{
-					error = new Error(ex.Message, exception: ex);
+					error = new ErrorResponse
+					{
+						Error = Resources.ApiClient_UnknownResponse,
+						Status = result?.Status,
+						TrackingId = result?.TrackingId
+					};
+				}
+				else
+				{
+					error = result;
 				}
 			}
 			else
 			{
-				error = new Error(Resources.ApiClient_NoErrorMessage);
+				error = new ErrorResponse
+				{
+					Error = Resources.ApiClient_NoErrorMessage
+				};
 			}
 
 			return (new GuestLineResponse<TResponse>(
 				method,
 				uri,
-				response.IsSuccessStatusCode,
+				false,
 				response.StatusCode,
-				rateLimiting: rateLimiting,
 				error: error
 			), stringContent);
 		}
-	}
-
-	RateLimiting? GetRateLimiting(HttpResponseMessage response)
-	{
-		var headers = response.Headers;
-
-		return int.TryParse(GetHeader("X-Ratelimit-Remaining", headers), out int remaining)
-			&& int.TryParse(GetHeader("X-Ratelimit-Limit", headers), out int limit)
-			? new RateLimiting { Limit = limit, Remaining = remaining } : null;
-	}
-
-	string BuildErrorMessage(ErrorContainer container)
-	{
-		var builder = new StringBuilder();
-		if (container.ErrorCode is { Length: > 0 })
-		{
-			builder.Append(container.ErrorCode);
-			builder.Append(": ");
-		}
-
-		if (container.Error is { Length: > 0 })
-		{
-			builder.Append(container.Error);
-			builder.Append("; ");
-		}
-
-		if (container.ErrorDetails is { Length: > 0 })
-		{
-			builder.Append(string.Join("; ", container.ErrorDetails.Select(ed => ed.Message).Where(m => m is { Length: > 0 })));
-		}
-
-		return builder.ToString().TrimEnd(' ', ';', ':') is { Length: > 0 } msg
-			? msg
-			: Resources.ApiClient_UnknownResponse;
-	}
-
-	string? GetHeader(string name, HttpHeaders headers)
-		=> headers.TryGetValues(name, out var values)
-		? values.First()
-		: null;
-
-	class ErrorContainer
-	{
-		[JsonPropertyName("error")]
-		public string? Error { get; set; }
-
-		[JsonPropertyName("errorCode")]
-		public string? ErrorCode { get; set; }
-
-		[JsonPropertyName("errorDetails")]
-		public ErrorDetails[]? ErrorDetails { get; set; }
-
-		[JsonPropertyName("bookingId")]
-		public int? BookingId { get; set; }
-
-		public Dictionary<string, string[]>? ToErrorDictionary()
-		{
-			if (ErrorDetails is null)
-			{
-				return null;
-			}
-
-			var dict = new Dictionary<string, string[]>();
-			dict.Add(ErrorCode ?? "error", ErrorDetails.Select(ed => ed.Message ?? string.Empty).ToArray());
-
-			return dict;
-		}
-	}
-
-	public class ErrorDetails
-	{
-		[JsonPropertyName("message")]
-		public string? Message { get; set; }
 	}
 	#endregion
 

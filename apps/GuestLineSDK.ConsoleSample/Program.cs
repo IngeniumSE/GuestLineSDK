@@ -13,11 +13,55 @@ var settings = GetSettings();
 var http = CreateHttpClient();
 var api = new GuestLineApiClient(http, settings);
 
+var prop = await api.Service.GetPropertyAsync("12992");
+
 var ari = await api.Service.GetAriAsync(new GuestLineAriRequest(
 	PropertyId: "12992",
 	RoomId: "1299210STANDARD",
 	RateId: "1299224125",
-	Action: AriAction.FullYear));
+	AriAction: AriAction.Range,
+	Start: new(2026, 02, 15),
+	End: new(2026, 02, 15)
+));
+
+var res = new ReservationRequest(
+	DateTime.UtcNow,
+	"X12345",
+	0,
+	"Hotel Collect",
+	999.99m,
+	Math.Round(999.99m / 6),
+	prop.Data!.CurrencyCode!,
+	"Confirm",
+	new ReservationCustomer
+	{
+		FirstName = "Matthew",
+		LastName = "Abbott"
+	},
+	[
+		new ReservationRoom(
+			new(2026, 02, 15),
+			new(2026, 02, 16),
+			"1299210STANDARD",
+			[
+				new ReservationRate(
+					new(2026, 02, 15),
+					"1299224125",
+					999.99m)
+			],
+			"Matthew",
+			"Abbott",
+			"Test Order",
+			999.99m,
+			1,
+			0)
+	],
+	"SpaSeekers");
+
+var reservationResult = await api.Reservation.ProcessReservationAsync(
+	new GuestLineReservationRequest(
+		"12992",
+		[res]));
 
 //string json = GetARIUpdate();
 
@@ -47,83 +91,4 @@ HttpClient CreateHttpClient()
 	http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
 	return http;
-}
-
-string GetARIUpdate()
-{
-	return @"{
-  ""propertyid"": ""934001"",
-  ""room_id"": ""10512556XPQ3"",
-  ""rate_id"": ""STAAH194181"",
-  ""currency"": ""INR"",
-  ""apikey"": ""GeT-aPi-DemoY-U1V8-bdt-03gEp-u1D8a4Y"",
-  ""data"": [
-    {
-      ""cta"": ""N"",
-      ""amountAfterTax"": {
-        ""extrachild"": ""600"",
-        ""Rate"": ""4900"",
-        ""obp"": {
-          ""person2"": ""5405"",
-          ""person3"": ""5700"",
-          ""person1"": ""4900""
-        },
-        ""extraadult"": ""800""
-      },
-      ""minstay"": ""1"",
-      ""from_date"": ""2024-08-22"",
-      ""to_date"": ""2024-08-22"",
-      ""stopsell"": ""N"",
-      ""amountBeforeTax"": {
-        ""Rate"": ""4900"",
-        ""extrachild"": ""600.00"",
-        ""extraadult"": ""800.00"",
-        ""obp"": {
-          ""person2"": ""5400"",
-          ""person3"": ""5700"",
-          ""person1"": ""4900""
-        }
-      },
-      ""ctd"": ""N"",
-      ""inventory"": ""9"",
-      ""maxstay"": ""28"",
-      ""minstay_through"": ""1"",
-      ""maxstay_through"": ""3""
-    },
-    {
-      ""minstay"": ""1"",
-      ""amountAfterTax"": {
-        ""obp"": {
-          ""person1"": ""4900"",
-          ""person3"": ""5700"",
-          ""person2"": ""5400""
-        },
-        ""extraadult"": ""800"",
-        ""Rate"": ""4900"",
-        ""extrachild"": ""600""
-      },
-      ""cta"": ""N"",
-      ""stopsell"": ""N"",
-      ""from_date"": ""2024-08-24"",
-      ""to_date"": ""2024-08-24"",
-      ""amountBeforeTax"": {
-        ""extrachild"": ""600.00"",
-        ""Rate"": ""4900"",
-        ""obp"": {
-          ""person3"": ""5758"",
-          ""person1"": ""4900"",
-          ""person2"": ""5400""
-        },
-        ""extraadult"": ""800.00""
-      },
-      ""ctd"": ""N"",
-      ""maxstay"": ""28"",
-      ""inventory"": ""9"",
-      ""minstay_through"": ""1"",
-      ""maxstay_through"": ""3""
-    }
-  ],
-  ""trackingId"": ""FA81B5AD-E050-4501-81C9-E33EAD371762"",
-  ""version"": ""2""
-}";
 }

@@ -14,6 +14,7 @@ static class JsonUtility
 		{
 			WriteIndented = false,
 			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+			NumberHandling = JsonNumberHandling.WriteAsString,
 			Converters =
 			{
 				new JsonStringEnumConverter()

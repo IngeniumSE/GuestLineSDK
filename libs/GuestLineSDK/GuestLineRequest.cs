@@ -73,9 +73,9 @@ public class GuestLineRequest<TData>(
 public enum GuestLineService
 {
 	/// <summary>
-	/// The booking service.
+	/// The reservation service.
 	/// </summary>
-	Book,
+	Reservation,
 
 	/// <summary>
 	/// The ARI service.

@@ -11,8 +11,8 @@ namespace GuestLineSDK.Ari;
 /// Provides a generic base model for ARI updates, encapsulating common properties shared across different ARI update types.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class AriUpdateRef<T> : Model<T>
-	where T : Model<T>
+public abstract class AriUpdateRef<T> : Result<T>
+	where T : Result<T>
 {
 	/// <summary>
 	/// The unqiue apikey of STAAH shared with OTA
@@ -43,12 +43,6 @@ public abstract class AriUpdateRef<T> : Model<T>
 	/// </summary>
 	[JsonPropertyName("room_id")]
 	public string? RoomId { get; set; }
-
-	/// <summary>
-	/// A unique tracking ID for STAAH. This can be used for troubleshooting if required
-	/// </summary>
-	[JsonPropertyName("trackingId")]
-	public string? TrackingId { get; set; }
 
 	/// <summary>
 	/// Action name must be version
@@ -109,13 +103,13 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
-	[JsonPropertyName("date"), JsonConverter(typeof(DateOnlyJsonConverter))]
+	[JsonPropertyName("date"), JsonConverter(typeof(NullableDateOnlyJsonConverter))]
 	public DateTime? Date { get; set; }
 
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
-	[JsonPropertyName("from_date"), JsonConverter(typeof(DateOnlyJsonConverter))]
+	[JsonPropertyName("from_date"), JsonConverter(typeof(NullableDateOnlyJsonConverter))]
 	public DateTime? FromDate { get; set; }
 
 	/// <summary>
@@ -157,7 +151,7 @@ public class AriUpdateData : Model<AriUpdateData>
 	/// <summary>
 	/// Date in YYYY-MM-DD format.
 	/// </summary>
-	[JsonPropertyName("to_date"), JsonConverter(typeof(DateOnlyJsonConverter))]
+	[JsonPropertyName("to_date"), JsonConverter(typeof(NullableDateOnlyJsonConverter))]
 	public DateTime? ToDate { get; set; }
 }
 
