@@ -269,6 +269,71 @@ public abstract class ApiClient
 			}
 		}
 	}
+
+	protected internal async Task<(GuestLineResponse, TResponse?)> FetchRawAsync<TRequest, TResponse>(
+		GuestLineRequest<TRequest> request,
+		CancellationToken cancellationToken = default)
+		where TRequest : notnull
+		where TResponse : class
+	{
+		Ensure.IsNotNull(request, nameof(request));
+		var (httpReq, capturedRequestContent) = CreateHttpRequest(request);
+		HttpResponseMessage? httpResp = null;
+
+		try
+		{
+			httpResp = await _http.SendAsync(httpReq, cancellationToken)
+				.ConfigureAwait(false);
+
+			var (transformedResponse, data, capturedResponseContent) = await TransformRawResponse<TResponse>(
+				httpReq.Method,
+				httpReq.RequestUri,
+				httpResp)
+					.ConfigureAwait(false); ;
+
+			if (_settings.CaptureRequestContent)
+			{
+				transformedResponse.RequestContent = capturedRequestContent;
+			}
+
+			if (_settings.CaptureResponseContent || !httpResp.IsSuccessStatusCode)
+			{
+				transformedResponse.ResponseContent = capturedResponseContent;
+			}
+
+			return (transformedResponse, data);
+		}
+		catch (Exception ex)
+		{
+			ex = ex.Demystify();
+
+			var response = new GuestLineResponse(
+				httpReq.Method,
+				httpReq.RequestUri,
+				false,
+				(HttpStatusCode)0,
+				error: new ErrorResponse
+				{
+					Error = ex.Message,
+					Exception = ex,
+					ErrorSource = ErrorSource.SDK
+				});
+
+			return (response, null);
+		}
+		finally
+		{
+			if (httpReq is not null)
+			{
+				httpReq.Dispose();
+			}
+
+			if (httpResp is not null)
+			{
+				httpResp.Dispose();
+			}
+		}
+	}
 	#endregion
 
 	#region Preprocessing
@@ -485,6 +550,116 @@ public abstract class ApiClient
 				response.StatusCode,
 				error: error
 			), stringContent);
+		}
+	}
+
+	protected internal async Task<(GuestLineResponse, TResponse?, string?)> TransformRawResponse<TResponse>(
+		HttpMethod method,
+		Uri uri,
+		HttpResponseMessage response,
+		CancellationToken cancellationToken = default)
+		where TResponse : class
+	{
+		Stream? content = null;
+		string? stringContent = null;
+		if (response.Content is not null)
+		{
+			if (_settings.CaptureResponseContent || !response.IsSuccessStatusCode)
+			{
+				stringContent = await response.Content.ReadAsStringAsync()
+					.ConfigureAwait(false);
+			}
+			else
+			{
+				content = await response.Content.ReadAsStreamAsync()
+				.ConfigureAwait(false);
+			}
+		}
+
+		if (response.IsSuccessStatusCode)
+		{
+			TResponse? data = default;
+			if (content is not null || stringContent is { Length: > 0 })
+			{
+				try
+				{
+					data = stringContent is { Length: > 0 }
+						? JsonSerializer.Deserialize<TResponse>(stringContent, _deserializerOptions)
+						: await JsonSerializer.DeserializeAsync<TResponse>(content!, _deserializerOptions).ConfigureAwait(false);
+
+					return (new GuestLineResponse(
+						method,
+						uri,
+						response.IsSuccessStatusCode,
+						response.StatusCode), data, stringContent);
+				}
+				catch (Exception ex)
+				{
+					ex = ex.Demystify();
+
+					return new(
+						new GuestLineResponse(
+							method,
+							uri,
+							response.IsSuccessStatusCode,
+							response.StatusCode,
+							error: new ErrorResponse
+							{
+								Error = ex.Message,
+								Exception = ex,
+								ErrorSource = ErrorSource.SDK
+							}
+						), null, stringContent);
+				}
+			}
+
+			return (new GuestLineResponse(
+				method,
+				uri,
+				false,
+				response.StatusCode,
+				error: new ErrorResponse
+				{
+					Error = Resources.ApiClient_UnknownResponse
+				}
+			), null, stringContent);
+		}
+		else
+		{
+			ErrorResponse? error;
+			if (stringContent is { Length: > 0 })
+			{
+				var result = JsonSerializer.Deserialize<ErrorResponse>(stringContent, _deserializerOptions);
+
+				if (result?.Error is not { Length: > 0 })
+				{
+					error = new ErrorResponse
+					{
+						Error = Resources.ApiClient_UnknownResponse,
+						Status = result?.Status,
+						TrackingId = result?.TrackingId
+					};
+				}
+				else
+				{
+					error = result;
+				}
+			}
+			else
+			{
+				error = new ErrorResponse
+				{
+					Error = Resources.ApiClient_NoErrorMessage
+				};
+			}
+
+			return (new GuestLineResponse(
+				method,
+				uri,
+				false,
+				response.StatusCode,
+				error: error
+			), null, stringContent);
 		}
 	}
 	#endregion

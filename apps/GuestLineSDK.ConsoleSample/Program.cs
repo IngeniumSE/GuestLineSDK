@@ -21,7 +21,7 @@ var ari = await api.Service.GetAriAsync(new GuestLineAriRequest(
 	RateId: "1299224125",
 	AriAction: AriAction.Range,
 	Start: new(2026, 02, 15),
-	End: new(2026, 02, 15)
+	End: new(2026, 02, 16)
 ));
 
 var res = new ReservationRequest(
@@ -61,7 +61,7 @@ var res = new ReservationRequest(
 var reservationResult = await api.Reservation.ProcessReservationAsync(
 	new GuestLineReservationRequest(
 		"12992",
-		[res]));
+		[res, res]));
 
 //string json = GetARIUpdate();
 

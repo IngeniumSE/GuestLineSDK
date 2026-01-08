@@ -27,7 +27,7 @@ partial class GuestLineApiClient
 
 public partial interface IReservationOperations
 {
-	Task<GuestLineResponse<ReservationRef>> ProcessReservationAsync(
+	Task<GuestLineResponse<ReservationRefSet>> ProcessReservationAsync(
 		GuestLineReservationRequest request,
 		CancellationToken cancellationToken = default);
 }
@@ -36,7 +36,7 @@ public class ReservationOperations(ApiClient client) : IReservationOperations
 {
 	readonly ApiClient _client = client;
 
-	public async Task<GuestLineResponse<ReservationRef>> ProcessReservationAsync(GuestLineReservationRequest request, CancellationToken cancellationToken = default)
+	public async Task<GuestLineResponse<ReservationRefSet>> ProcessReservationAsync(GuestLineReservationRequest request, CancellationToken cancellationToken = default)
 	{
 
 		Ensure.IsNotNull(request, nameof(request));
@@ -52,8 +52,63 @@ public class ReservationOperations(ApiClient client) : IReservationOperations
 			PathString.Empty,
 			request);
 
-		return await _client.FetchAsync<GuestLineReservationRequest, ReservationRef>(req, cancellationToken)
+		var (res, data) = await _client.FetchRawAsync<GuestLineReservationRequest, ReservationRef[]>(req, cancellationToken)
 			.ConfigureAwait(false);
+
+		if (!res.IsSuccess)
+		{
+			return new GuestLineResponse<ReservationRefSet>(
+				res.RequestMethod,
+				res.RequestUri,
+				res.IsSuccess,
+				res.StatusCode,
+				error: res.Error);
+		}
+
+		string? trackingId = null;
+		List<ReservationRef> refs = new();
+		List<string> errors = new();
+		bool success = true;
+
+		if (data != null)
+		{
+			var tracker = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.TrackingId));
+			trackingId = tracker?.TrackingId;
+
+			for (int i = 0; i < data.Length; i++)
+			{
+				var @ref = data[i];
+				if (@ref == tracker)
+				{
+					continue;
+				}
+
+				if (@ref.Error is { Length: >0 } || string.Equals("fail", @ref.Status, StringComparison.OrdinalIgnoreCase))
+				{
+					success = false;
+					if (@ref.Error is { Length: >0 })
+					{
+						errors.Add(@ref.Error);
+					}
+				}
+
+				@ref.TrackingId = tracker?.TrackingId;
+				refs.Add(@ref);
+			}
+		}
+
+		return new GuestLineResponse<ReservationRefSet>(
+			res.RequestMethod,
+			res.RequestUri,
+			success,
+			res.StatusCode,
+			data: new ReservationRefSet()
+			{
+				Reservations = refs.ToArray(),
+				TrackingId = trackingId
+			},
+			error: res.Error ?? new ErrorResponse() { Error = string.Join("\n", errors), Status = "Fail", TrackingId = trackingId }
+		);
 	}
 }
 
@@ -91,6 +146,12 @@ public class ReservationRef : Result<ReservationRef>
 {
 	[JsonPropertyName("bookingId")]
 	public string? BookingId { get; set; }
+}
+
+public class ReservationRefSet : Result<ReservationRefSet>
+{
+	[JsonPropertyName("reservations")]
+	public ReservationRef[]? Reservations { get; set; }
 }
 
 public record ReservationRequest(
