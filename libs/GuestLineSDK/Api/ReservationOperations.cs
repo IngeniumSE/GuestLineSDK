@@ -107,8 +107,15 @@ public class ReservationOperations(ApiClient client) : IReservationOperations
 				Reservations = refs.ToArray(),
 				TrackingId = trackingId
 			},
-			error: res.Error ?? new ErrorResponse() { Error = string.Join("\n", errors), Status = "Fail", TrackingId = trackingId }
-		);
+			error: res.Error != null || errors.Any()
+				? res.Error ?? new ErrorResponse() { Error = string.Join("\n", errors), Status = "Fail", TrackingId = trackingId }
+				: null
+		)
+		{
+			RequestContent = res.RequestContent,
+			ResponseContent = res.ResponseContent
+		};
+		
 	}
 }
 

@@ -26,7 +26,7 @@ var ari = await api.Service.GetAriAsync(new GuestLineAriRequest(
 
 var res = new ReservationRequest(
 	DateTime.UtcNow,
-	"X12345",
+	"X12346",
 	0,
 	"Hotel Collect",
 	999.99m,
@@ -44,10 +44,10 @@ var res = new ReservationRequest(
 			new(2026, 02, 16),
 			"1299210STANDARD",
 			[
-				new ReservationRate(
-					new(2026, 02, 15),
-					"1299224125",
-					999.99m)
+				//new ReservationRate(
+				//	new(2026, 02, 15),
+				//	"1299224125",
+				//	999.99m)
 			],
 			"Matthew",
 			"Abbott",
@@ -61,7 +61,8 @@ var res = new ReservationRequest(
 var reservationResult = await api.Reservation.ProcessReservationAsync(
 	new GuestLineReservationRequest(
 		"12992",
-		[res, res]));
+		[res]));
+
 
 //string json = GetARIUpdate();
 
