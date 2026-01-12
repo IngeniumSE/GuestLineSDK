@@ -63,7 +63,7 @@ var reservationResult = await api.Reservation.ProcessReservationAsync(
 		"12992",
 		[res]));
 
-var cancellation = res.AsCancellation();
+var cancellation = res.AsCancellation(DateTime.UtcNow);
 
 var cancellationResult = await api.Reservation.ProcessReservationAsync(
 	new GuestLineReservationRequest(
