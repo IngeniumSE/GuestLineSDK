@@ -224,17 +224,17 @@ public record ReservationRoom(
 	[property: JsonIgnore] int Children)
 {
 	[JsonPropertyName("GuestCount")]
-	public ReservationGuestGrouping[]? Guests => GetGroupings().ToArray();
+	public ReservationGuestGrouping[]? Guests { get; set; } = GetGroupings(Adults, Children).ToArray();
 
-	IEnumerable<ReservationGuestGrouping> GetGroupings()
+	static IEnumerable<ReservationGuestGrouping> GetGroupings(int adults, int children)
 	{
-		if (Adults > 0)
+		if (adults > 0)
 		{
-			yield return new ReservationGuestGrouping(10, Adults);
+			yield return new ReservationGuestGrouping(10, adults);
 		}
-		if (Children > 0)
+		if (children > 0)
 		{
-			yield return new ReservationGuestGrouping(8, Children);
+			yield return new ReservationGuestGrouping(8, children);
 		}
 	}
 }
