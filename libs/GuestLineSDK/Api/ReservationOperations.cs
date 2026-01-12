@@ -172,7 +172,10 @@ public record ReservationRequest(
 	[property: JsonPropertyName("status")] string Status,
 	[property: JsonPropertyName("customer")] ReservationCustomer Customer,
 	[property: JsonPropertyName("room")] ReservationRoom[] Rooms,
-	[property: JsonPropertyName("POS")] string Source);
+	[property: JsonPropertyName("POS")] string Source)
+{
+	public ReservationRequest AsCancellation() => this with { Status = "Cancel" };
+}
 
 public class ReservationCustomer
 {
